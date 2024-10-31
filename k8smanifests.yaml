@@ -1,0 +1,149 @@
+# namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crypto-price
+  labels:
+    name: crypto-price
+
+---
+# configmap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: crypto-price-config
+  namespace: crypto-price
+data:
+  FLASK_ENV: "production"
+  FLASK_DEBUG: "0"
+
+---
+# deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crypto-price-server
+  namespace: crypto-price
+  labels:
+    app: crypto-price-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: crypto-price-server
+  template:
+    metadata:
+      labels:
+        app: crypto-price-server
+    spec:
+      containers:
+      - name: crypto-price-server
+        image: crypto-price-server:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: crypto-price-config
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        livenessProbe:
+          httpGet:
+            path: /bitcoin
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /bitcoin
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 15
+
+---
+# service
+apiVersion: v1
+kind: Service
+metadata:
+  name: crypto-price-service
+  namespace: crypto-price
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 5000
+    protocol: TCP
+    name: http
+  selector:
+    app: crypto-price-server
+
+---
+# hpa
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: crypto-price-hpa
+  namespace: crypto-price
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: crypto-price-server
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# networkpolicy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: crypto-price-network-policy
+  namespace: crypto-price
+spec:
+  podSelector:
+    matchLabels:
+      app: crypto-price-server
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - ports:
+    - port: 5000
+  egress:
+  - ports:
+    - port: 443
+      protocol: TCP
+    to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+
+---
+# poddisruptionbudget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: crypto-price-pdb
+  namespace: crypto-price
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: crypto-price-server
