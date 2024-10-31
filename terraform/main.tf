@@ -8,7 +8,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "terraform-state-crypto-price"
+    bucket = "terraform-state-coinprice"
     prefix = "terraform/state"
   }
 }
@@ -34,7 +34,7 @@ resource "google_project_service" "services" {
 # Create Artifact Registry Repository
 resource "google_artifact_registry_repository" "repo" {
   location      = var.region
-  repository_id = "crypto-price-repo"
+  repository_id = "devops-example-coinprice"
   description   = "Docker repository for crypto price server"
   format        = "DOCKER"
 
@@ -90,13 +90,13 @@ resource "google_container_node_pool" "primary_nodes" {
 
 # Create VPC
 resource "google_compute_network" "vpc" {
-  name                    = "crypto-price-vpc"
+  name                    = "coinprice-vpc"
   auto_create_subnetworks = false
 }
 
 # Create Subnet
 resource "google_compute_subnetwork" "subnet" {
-  name          = "crypto-price-subnet"
+  name          = "coinprice-subnet"
   ip_cidr_range = "10.0.0.0/16"
   region        = var.region
   network       = google_compute_network.vpc.name
