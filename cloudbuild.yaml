@@ -1,0 +1,30 @@
+# Build Docker container
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build',
+    '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/crypto-price-server:$COMMIT_SHA',
+    '.'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'push',
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/crypto-price-server:$COMMIT_SHA'
+  ]
+
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: [
+    'set',
+    'image',
+    'deployment/crypto-price-server',
+    'crypto-price-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/crypto-price-server:$COMMIT_SHA'
+  ]
+  env:
+  - 'CLOUDSDK_COMPUTE_REGION=${_REGION}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+substitutions:
+  _REGION: us-central1
+  _REPO_NAME: devops-example
+  _CLUSTER_NAME: crypto-price-cluster
