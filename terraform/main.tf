@@ -19,16 +19,29 @@ provider "google" {
   zone    = var.zone
 }
 
-# Enable required APIs
+# Bootstrap managing services
+resource "google_project_service" "cloudresourcemanager" {
+  project = var.project_id
+  service = "cloudresourcemanager.googleapis.com"
+
+  disable_on_destroy = false
+}
+
+# Enable other services
 resource "google_project_service" "services" {
   for_each = toset([
-    "container.googleapis.com",
     "cloudbuild.googleapis.com",
-    "artifactregistry.googleapis.com"
+    "secretmanager.googleapis.com",
+    "container.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "billingbudgets.googleapis.com"
   ])
 
+  project = var.project_id
   service = each.key
   disable_on_destroy = false
+
+  depends_on = [google_project_service.cloudresourcemanager]
 }
 
 # Create Artifact Registry Repository
@@ -41,21 +54,56 @@ resource "google_artifact_registry_repository" "repo" {
   depends_on = [google_project_service.services]
 }
 
-# Create CI/CD pipeline
-resource "google_cloudbuild_trigger" "coinprice_server_trigger" {
-  name        = "coinprice-server-trigger"
-  description = "Trigger for building and deploying coinprice server"
-  location    = var.region
+// Create a secret containing the personal access token and grant permissions to the Service Agent
+resource "google_secret_manager_secret" "github_token_secret" {
+    project =  var.project_id
+    secret_id = var.secret_id
 
-  github {
-    owner = "labusaid"
-    name  = var.repo_name
-    push {
-      branch = "^master$"  # branch trigger regex
+    replication {
+        auto {}
     }
-  }
+}
 
-  filename = "cloudbuild.yaml"
+resource "google_secret_manager_secret_version" "github_token_secret_version" {
+    secret = google_secret_manager_secret.github_token_secret.id
+    secret_data = var.github_pat
+}
+
+data "google_iam_policy" "serviceagent_secretAccessor" {
+    binding {
+        role = "roles/secretmanager.secretAccessor"
+        members = ["serviceAccount:service-${var.project_number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"]
+    }
+}
+
+resource "google_secret_manager_secret_iam_policy" "policy" {
+  project = google_secret_manager_secret.github_token_secret.project
+  secret_id = google_secret_manager_secret.github_token_secret.secret_id
+  policy_data = data.google_iam_policy.serviceagent_secretAccessor.policy_data
+}
+
+// Create the GitHub connection
+resource "google_cloudbuildv2_connection" "coinprice_github_connection" {
+    project = var.project_id
+    location = var.region
+    name = "coinprice-github-connection"
+
+    github_config {
+        app_installation_id = var.installation_id
+        authorizer_credential {
+            oauth_token_secret_version = google_secret_manager_secret_version.github_token_secret_version.id
+        }
+    }
+    depends_on = [google_secret_manager_secret_iam_policy.policy]
+}
+
+# Create CloudBuild connection
+resource "google_cloudbuildv2_repository" "coinprice_cloudbuild_repository" {
+  project = var.project_id
+  location = var.region
+  name = var.repo_name
+  parent_connection = google_cloudbuildv2_connection.coinprice_github_connection.name
+  remote_uri = var.repo_uri
 }
 
 # Create GKE Cluster
