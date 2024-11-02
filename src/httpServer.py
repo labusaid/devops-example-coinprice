@@ -26,7 +26,7 @@ def get_crypto_price(crypto_id):
 
 
 @app.route('/')
-def get_ethereum_price():
+def health_check():
     """Health Check Endpoint"""
     return jsonify(health="healthy")
 

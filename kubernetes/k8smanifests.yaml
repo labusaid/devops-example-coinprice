@@ -32,7 +32,7 @@ metadata:
   labels:
     app: coinprice-server
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: coinprice-server
@@ -44,7 +44,7 @@ spec:
       serviceAccountName: coinprice-server-sa
       containers:
       - name: coinprice-server
-        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/devops-example-coinprice/coinprice-server:latest
+        image: us-central1-docker.pkg.dev/devops-demo-coinprice/devops-example-coinprice/coinprice-server:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
@@ -54,10 +54,10 @@ spec:
         resources:
           requests:
             cpu: "100m"
-            memory: "256Mi"
+            memory: "128Mi"
           limits:
             cpu: "250m"
-            memory: "512Mi"
+            memory: "256Mi"
         livenessProbe:
           httpGet:
             path: /bitcoin
@@ -98,8 +98,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: coinprice-server
-  minReplicas: 2
-  maxReplicas: 10
+  minReplicas: 1
+  maxReplicas: 8
   metrics:
   - type: Resource
     resource:

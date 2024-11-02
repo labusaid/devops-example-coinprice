@@ -196,15 +196,15 @@ resource "google_container_node_pool" "primary_nodes" {
   location   = var.zone
   cluster    = google_container_cluster.primary.name
 
-  node_count = 2
+  node_count = 1
 
   node_config {
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
 
-    # cheap nodes for cost optimization (should stay within free tier if only one node is used)
-    machine_type = "e2-micro"
+    # cheap nodes for cost optimization
+    machine_type = "e2-small"
     disk_size_gb = 10
     disk_type    = "pd-standard"
 
@@ -219,7 +219,7 @@ resource "google_container_node_pool" "primary_nodes" {
 
   autoscaling {
     min_node_count = 1
-    max_node_count = 2
+    max_node_count = 10
   }
 }
 
@@ -259,7 +259,7 @@ resource "google_billing_budget" "budget" {
   display_name    = "Monthly Billing Alert"
 
   budget_filter {
-    projects = ["projects/${var.project_id}"]
+    projects = ["projects/${var.project_number}"]
   }
 
   amount {
