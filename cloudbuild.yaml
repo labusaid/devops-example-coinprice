@@ -26,7 +26,7 @@ steps:
     'crypto-price-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
   env:
-  - 'CLOUDSDK_COMPUTE_REGION=${_REGION}'
+  - 'CLOUDSDK_COMPUTE_REGION=${_ZONE}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
 substitutions:
