@@ -25,9 +25,8 @@ steps:
 - name: 'gcr.io/cloud-builders/curl'
   args: [
     '-f',  # Fail on HTTP errors
-    '-s',  # Silent mode
     '--retry', '3',
-    '--retry-delay', '2',
+    '--retry-delay', '10',
     'http://localhost:5000'
   ]
 
