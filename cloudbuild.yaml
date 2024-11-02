@@ -6,7 +6,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'build',
-    '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA',
+    '-t', '${_ZONE}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA',
     '.'
   ]
 
@@ -14,7 +14,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'push',
-    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
+    '${_ZONE}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
 
 # Deploy to k8s
