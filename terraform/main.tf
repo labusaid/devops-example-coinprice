@@ -108,6 +108,50 @@ resource "google_cloudbuildv2_repository" "coinprice_cloudbuild_repository" {
   remote_uri = var.repo_uri
 }
 
+# Create the service account for Cloud Build
+resource "google_service_account" "cloudbuild_service_account" {
+  project      = var.project_id
+  account_id   = "cloudbuild-trigger-sa"
+  display_name = "Cloud Build Trigger Service Account"
+}
+
+# Grant necessary permissions to the service account
+resource "google_project_iam_member" "cloudbuild_roles" {
+  for_each = toset([
+    "roles/cloudbuild.builds.builder",
+    "roles/viewer"
+  ])
+
+  project = var.project_id
+  role    = each.key
+  member  = "serviceAccount:${google_service_account.cloudbuild_service_account.email}"
+}
+
+# Create build trigger
+resource "google_cloudbuild_trigger" "filename-trigger" {
+  project = var.project_id
+  name = "master-branch-trigger"
+  location = var.region
+
+  service_account = google_service_account.cloudbuild_service_account.id
+
+  github {
+    owner = split("/", var.repo_uri)[3]
+    name  = var.repo_name
+    push {
+      branch = "^master$"
+    }
+  }
+
+  filename = "cloudbuild.yaml"
+
+  depends_on = [
+    google_cloudbuildv2_repository.coinprice_cloudbuild_repository,
+    google_project_iam_member.cloudbuild_roles
+  ]
+}
+
+
 # Create GKE Cluster
 resource "google_container_cluster" "primary" {
   name     = var.cluster_name
