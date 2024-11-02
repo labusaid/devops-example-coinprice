@@ -7,17 +7,19 @@ steps:
   args: [
     'build',
     '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA',
+    '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:latest',
     '.'
   ]
 
-# Push to container registry
+# Push to Artifact Registry
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'push',
-    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
+    '--all-tags',
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server'
   ]
 
-# Deploy to k8s
+# Deploy to GKE
 - name: 'gcr.io/cloud-builders/kubectl'
   args: [
     'set',
@@ -26,7 +28,14 @@ steps:
     'coinprice-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
   env:
-  - 'CLOUDSDK_COMPUTE_REGION=${_ZONE}'
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'  # Changed from REGION to ZONE to match your cluster config
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
+
+# Verify deployment
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['rollout', 'status', 'deployment/coinprice-server']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
 substitutions:
@@ -34,3 +43,5 @@ substitutions:
   _ZONE: us-central1-a
   _REPO_NAME: devops-example-coinprice
   _CLUSTER_NAME: coinprice-cluster
+
+timeout: 1800s
