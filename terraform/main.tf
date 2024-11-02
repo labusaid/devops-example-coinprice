@@ -36,7 +36,8 @@ resource "google_project_service" "services" {
     "secretmanager.googleapis.com",
     "container.googleapis.com",
     "artifactregistry.googleapis.com",
-    "billingbudgets.googleapis.com"
+    "billingbudgets.googleapis.com",
+    "clouddeploy.googleapis.com",
   ])
 
   project = var.project_id
