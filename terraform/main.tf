@@ -115,11 +115,11 @@ resource "google_cloudbuildv2_connection" "coinprice_github_connection" {
 
 # Create CloudBuild connection
 resource "google_cloudbuildv2_repository" "coinprice_cloudbuild_repository" {
-  project = var.project_id
-  location = var.region
-  name = var.repo_name
+  project          = var.project_id
+  location         = var.region
+  name             = var.repo_name
   parent_connection = google_cloudbuildv2_connection.coinprice_github_connection.name
-  remote_uri = var.repo_uri
+  remote_uri       = var.repo_uri
 }
 
 # Create the service account for Cloud Build
@@ -141,10 +141,17 @@ resource "google_project_iam_member" "cloudbuild_roles" {
   member  = "serviceAccount:${google_service_account.cloudbuild_service_account.email}"
 }
 
+# Grant additional permissions for Kubernetes deployments
+resource "google_project_iam_member" "cloudbuild_developer" {
+  project = var.project_id
+  role    = "roles/container.developer"
+  member  = "serviceAccount:${google_service_account.cloudbuild_service_account.email}"
+}
+
 # Create build trigger
 resource "google_cloudbuild_trigger" "filename-trigger" {
   project = var.project_id
-  name = "master-branch-trigger"
+  name    = "master-branch-trigger"
   location = var.region
 
   service_account = google_service_account.cloudbuild_service_account.id
@@ -161,9 +168,11 @@ resource "google_cloudbuild_trigger" "filename-trigger" {
 
   depends_on = [
     google_cloudbuildv2_repository.coinprice_cloudbuild_repository,
-    google_project_iam_member.cloudbuild_roles
+    google_project_iam_member.cloudbuild_roles,
+    google_project_iam_member.cloudbuild_developer
   ]
 }
+
 
 
 # Create GKE Cluster
@@ -224,6 +233,10 @@ locals {
 resource "kubernetes_manifest" "multi_manifests" {
   count    = length(local.manifests)
   manifest = yamldecode(local.manifests[count.index])
+
+  field_manager {
+    force_conflicts = true
+  }
 }
 
 # Create VPC
