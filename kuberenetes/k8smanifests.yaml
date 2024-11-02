@@ -18,6 +18,14 @@ data:
   FLASK_DEBUG: "0"
 
 ---
+# service account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: coinprice-server-sa
+  namespace: coinprice
+
+---
 # deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -36,6 +44,7 @@ spec:
       labels:
         app: coinprice-server
     spec:
+      serviceAccountName: coinprice-server-sa
       containers:
       - name: coinprice-server
         image: coinprice-server:latest
