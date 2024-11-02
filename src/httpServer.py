@@ -25,6 +25,11 @@ def get_crypto_price(crypto_id):
         return {"error": f"Failed to fetch {crypto_id} price: {str(e)}"}
 
 
+@app.route('/')
+def get_ethereum_price():
+    """Health Check Endpoint"""
+    return jsonify(health="healthy")
+
 @app.route('/ethereum')
 def get_ethereum_price():
     """Endpoint to get latest Ethereum price"""
