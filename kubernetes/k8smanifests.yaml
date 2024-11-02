@@ -5,7 +5,6 @@ metadata:
   name: coinprice
   labels:
     name: coinprice
-
 ---
 # configmap
 apiVersion: v1
@@ -16,7 +15,6 @@ metadata:
 data:
   FLASK_ENV: "production"
   FLASK_DEBUG: "0"
-
 ---
 # service account
 apiVersion: v1
@@ -24,7 +22,6 @@ kind: ServiceAccount
 metadata:
   name: coinprice-server-sa
   namespace: coinprice
-
 ---
 # deployment
 apiVersion: apps/v1
@@ -73,7 +70,6 @@ spec:
             port: 5000
           initialDelaySeconds: 15
           periodSeconds: 15
-
 ---
 # service
 apiVersion: v1
@@ -90,7 +86,6 @@ spec:
     name: http
   selector:
     app: coinprice-server
-
 ---
 # hpa
 apiVersion: autoscaling/v2
@@ -118,7 +113,6 @@ spec:
       target:
         type: Utilization
         averageUtilization: 80
-
 ---
 # networkpolicy
 apiVersion: networking.k8s.io/v1
@@ -143,7 +137,6 @@ spec:
     to:
     - ipBlock:
         cidr: 0.0.0.0/0
-
 ---
 # poddisruptionbudget
 apiVersion: policy/v1

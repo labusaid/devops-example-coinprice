@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 4.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.0"
+    }
   }
 
   backend "gcs" {
@@ -19,6 +23,15 @@ provider "google" {
   zone    = var.zone
   user_project_override = true
   billing_project = var.project_id
+}
+
+# Get Google client configuration
+data "google_client_config" "default" {}
+
+provider "kubernetes" {
+  host                   = "https://${google_container_cluster.primary.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(google_container_cluster.primary.master_auth[0].cluster_ca_certificate)
 }
 
 # Bootstrap managing services
@@ -199,6 +212,18 @@ resource "google_container_node_pool" "primary_nodes" {
     min_node_count = 1
     max_node_count = 2
   }
+}
+
+# Apply Kubernetes manifest
+# Read and split file by '---'
+locals {
+  manifests = split("---", file("../kubernetes/k8smanifests.yaml"))
+}
+
+# Apply each manifest as a separate Kubernetes resource
+resource "kubernetes_manifest" "multi_manifests" {
+  count    = length(local.manifests)
+  manifest = yamldecode(local.manifests[count.index])
 }
 
 # Create VPC
