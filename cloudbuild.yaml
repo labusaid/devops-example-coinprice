@@ -23,13 +23,14 @@ steps:
     'set',
     'image',
     'deployment/coinprice-server',
-    'crypto-price-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
+    'crypto-price-server=${_ZONE}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
   env:
-  - 'CLOUDSDK_COMPUTE_REGION=${_REGION}'
+  - 'CLOUDSDK_COMPUTE_REGION=${_ZONE'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
 substitutions:
   _REGION: us-central1
+  _ZONE: us-central1-a
   _REPO_NAME: devops-example-coinprice
   _CLUSTER_NAME: coinprice-cluster
