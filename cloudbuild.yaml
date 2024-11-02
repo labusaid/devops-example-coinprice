@@ -10,7 +10,7 @@ steps:
     '.'
   ]
 
-# Run app tests
+# Run app integration tests
 # Start Container
 - name: 'gcr.io/cloud-builders/docker'
   args: [
@@ -21,9 +21,18 @@ steps:
     '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
 
-# Wait for container to start (adjust sleep time as needed)
-- name: 'gcr.io/cloud-builders/gcloud'
-  args: ['beta', 'run', 'jobs', 'execute', 'sleep', '--', 'sleep', '10']
+# Health check for container readiness
+- name: 'curlimages/curl'
+  entrypoint: 'sh'
+  args:
+    - '-c'
+    - |
+      echo "Waiting for container to be ready..."
+      until curl -s -f http://localhost:5000; do
+        echo "Container is not ready yet, retrying in 2 seconds..."
+        sleep 2
+      done
+      echo "Container is ready!"
 
 # Test HTTP response
 - name: 'gcr.io/cloud-builders/curl'
