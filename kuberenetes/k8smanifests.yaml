@@ -2,17 +2,17 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: crypto-price
+  name: coinprice
   labels:
-    name: crypto-price
+    name: coinprice
 
 ---
 # configmap
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: crypto-price-config
-  namespace: crypto-price
+  name: coinprice-config
+  namespace: coinprice
 data:
   FLASK_ENV: "production"
   FLASK_DEBUG: "0"
@@ -22,29 +22,29 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: crypto-price-server
-  namespace: crypto-price
+  name: coinprice-server
+  namespace: coinprice
   labels:
-    app: crypto-price-server
+    app: coinprice-server
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: crypto-price-server
+      app: coinprice-server
   template:
     metadata:
       labels:
-        app: crypto-price-server
+        app: coinprice-server
     spec:
       containers:
-      - name: crypto-price-server
-        image: crypto-price-server:latest
+      - name: coinprice-server
+        image: coinprice-server:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
         envFrom:
         - configMapRef:
-            name: crypto-price-config
+            name: coinprice-config
         resources:
           requests:
             cpu: "100m"
@@ -70,8 +70,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: crypto-price-service
-  namespace: crypto-price
+  name: coinprice-service
+  namespace: coinprice
 spec:
   type: LoadBalancer
   ports:
@@ -80,20 +80,20 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: crypto-price-server
+    app: coinprice-server
 
 ---
 # hpa
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: crypto-price-hpa
-  namespace: crypto-price
+  name: coinprice-hpa
+  namespace: coinprice
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: crypto-price-server
+    name: coinprice-server
   minReplicas: 2
   maxReplicas: 10
   metrics:
@@ -115,12 +115,12 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: crypto-price-network-policy
-  namespace: crypto-price
+  name: coinprice-network-policy
+  namespace: coinprice
 spec:
   podSelector:
     matchLabels:
-      app: crypto-price-server
+      app: coinprice-server
   policyTypes:
   - Ingress
   - Egress
@@ -140,10 +140,10 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: crypto-price-pdb
-  namespace: crypto-price
+  name: coinprice-pdb
+  namespace: coinprice
 spec:
   minAvailable: 1
   selector:
     matchLabels:
-      app: crypto-price-server
+      app: coinprice-server
