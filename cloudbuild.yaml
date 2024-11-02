@@ -6,7 +6,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'build',
-    '-t', '${_ZONE}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA',
+    '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA',
     '.'
   ]
 
@@ -14,7 +14,7 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: [
     'push',
-    '${_ZONE}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
+    '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
 
 # Deploy to k8s
@@ -23,10 +23,10 @@ steps:
     'set',
     'image',
     'deployment/coinprice-server',
-    'crypto-price-server=${_ZONE}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
+    'crypto-price-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
   ]
   env:
-  - 'CLOUDSDK_COMPUTE_REGION=${_ZONE}'
+  - 'CLOUDSDK_COMPUTE_REGION=${_REGION}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
 substitutions:
