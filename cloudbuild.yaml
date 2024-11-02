@@ -25,15 +25,17 @@ steps:
     'set',
     'image',
     'deployment/coinprice-server',
-    'coinprice-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA'
+    'coinprice-server=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/coinprice-server:$COMMIT_SHA',
+    '-n',
+    'coinprice'
   ]
   env:
-  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'  # Changed from REGION to ZONE to match your cluster config
+  - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'
 
 # Verify deployment
 - name: 'gcr.io/cloud-builders/kubectl'
-  args: ['rollout', 'status', 'deployment/coinprice-server']
+  args: ['rollout', 'status', 'deployment/coinprice-server', '-n', 'coinprice']
   env:
   - 'CLOUDSDK_COMPUTE_ZONE=${_ZONE}'
   - 'CLOUDSDK_CONTAINER_CLUSTER=${_CLUSTER_NAME}'

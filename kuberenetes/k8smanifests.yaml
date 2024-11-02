@@ -47,7 +47,7 @@ spec:
       serviceAccountName: coinprice-server-sa
       containers:
       - name: coinprice-server
-        image: coinprice-server:latest
+        image: us-central1-docker.pkg.dev/YOUR_PROJECT_ID/devops-example-coinprice/coinprice-server:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 5000
