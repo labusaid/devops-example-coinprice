@@ -99,7 +99,7 @@ spec:
     kind: Deployment
     name: coinprice-server
   minReplicas: 1
-  maxReplicas: 8
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:
@@ -145,7 +145,7 @@ metadata:
   name: coinprice-pdb
   namespace: coinprice
 spec:
-  minAvailable: 1
+  minAvailable: 0
   selector:
     matchLabels:
       app: coinprice-server

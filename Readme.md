@@ -44,7 +44,7 @@ gcloud init
 
 You also need to create a Google cloud project if you don't already have one.
 I recommend doing this manually from the [Google cloud console](https://console.cloud.google.com/), since billing will need to be enabled for this project.
-Most things have been cost optimized and should stay in the free tier, but alerts are set up for a budget of $25 at 50,80,and 100% of the budget.
+Most things have been cost optimized and should stay under a couple dollars per month, but alerts are set up for a budget of $25 at 50,80,and 100% of the budget.
 
 Now you can configure your gcloud cli to use the project. Replace `PROJECT_ID` with the project id you set for the new project.
 ```shell

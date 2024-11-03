@@ -204,7 +204,7 @@ resource "google_container_node_pool" "primary_nodes" {
     ]
 
     # cheap nodes for cost optimization
-    machine_type = "e2-small"
+    machine_type = "e2-micro"
     disk_size_gb = 10
     disk_type    = "pd-standard"
 
